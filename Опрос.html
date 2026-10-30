@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Проверь: ад или рай?</title>
+<style>
+:root{--bg:#faf7f2;--card:#fff;--text:#2b2623;--muted:#7a716a;--accent:#b8863b;--accent-t:#fff;--line:#e8e0d4;--sel:#f4e8d0;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171513;--card:#211e1b;--text:#f0ebe4;--muted:#a39a90;--accent:#d9a752;--accent-t:#1a1512;--line:#35302a;--sel:#3a3022}}
+:root[data-theme="dark"]{--bg:#171513;--card:#211e1b;--text:#f0ebe4;--muted:#a39a90;--accent:#d9a752;--accent-t:#1a1512;--line:#35302a;--sel:#3a3022}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Georgia,'Times New Roman',serif;line-height:1.5}
+main{max-width:620px;margin:0 auto;padding:28px 18px 48px}
+h1{font-size:clamp(28px,8vw,40px);line-height:1.15;margin:0 0 12px;text-align:center}
+.intro{color:var(--muted);text-align:center;margin:0 0 26px;font-size:17px}
+.bar{height:5px;background:var(--line);border-radius:3px;margin-bottom:20px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.q{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.q p{margin:0 0 12px;font-size:17px}
+.q p b{color:var(--accent);margin-right:6px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts label{flex:1 1 auto;min-width:30%}
+.opts input{position:absolute;opacity:0;pointer-events:none}
+.opts span{display:block;text-align:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;font:15px system-ui,sans-serif;cursor:pointer}
+.opts input:checked+span{background:var(--sel);border-color:var(--accent);font-weight:600}
+.opts input:focus-visible+span{outline:2px solid var(--accent)}
+button,.btn{display:block;width:100%;padding:15px;border:0;border-radius:12px;background:var(--accent);color:var(--accent-t);font:600 17px system-ui,sans-serif;cursor:pointer;text-align:center;text-decoration:none}
+button:disabled{opacity:.45;cursor:default}
+.hint{text-align:center;color:var(--muted);font:14px system-ui,sans-serif;margin:10px 0 0;min-height:20px}
+#result{display:none}
+.res{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:16px}
+.res h2{margin:0 0 10px;font-size:24px}
+.verse{border-left:4px solid var(--accent);padding:4px 0 4px 14px;margin:16px 0;font-size:18px;font-style:italic}
+.verse small{display:block;font:600 14px system-ui,sans-serif;font-style:normal;color:var(--accent);margin-top:6px}
+.note{color:var(--muted);font-size:15px}
+.fin h3{font-size:19px;margin:0 0 12px}
+.again{background:transparent;color:var(--muted);border:1px solid var(--line);margin-top:10px;font-weight:500}
+</style>
+</head>
+<body>
+<main>
+<div id="quiz">
+<h1>Проверь: ад или рай?</h1>
+<p class="intro">Представьте, что сегодня вам предстоит предстать перед Богом. Давайте немного поразмышляем о вашей жизни. Верных и неверных ответов нет.</p>
+<div class="bar"><i id="pb"></i></div>
+<div id="qs"></div>
+<button id="go" disabled>Проверить</button>
+<p class="hint" id="hint">Ответьте на все вопросы</p>
+</div>
+
+<div id="result">
+<div class="res">
+<h2 id="rt"></h2>
+<p id="rx"></p>
+<div class="verse" id="rv"></div>
+<p class="note" id="rn"></p>
+</div>
+<div class="res fin">
+<h3>Ещё три вопроса, если хотите</h3>
+<div id="fq"></div>
+<a class="btn" id="contact" href="https://t.me/asdpraym" target="_blank" rel="noopener" style="margin-top:14px">Поговорить об этом</a>
+</div>
+<button class="again" id="again">Пройти заново</button>
+</div>
+</main>
+
+<script>
+var YNS=[["Да",2],["Иногда",1],["Нет",0]];
+var Q=[
+["Случалось ли вам обращаться к Богу с молитвой в трудные моменты жизни?"],
+["Читали ли вы когда-нибудь Библию или интересовались тем, что в ней написано?"],
+["Задумывались ли вы о том, что происходит с человеком после смерти?"],
+["Случалось ли вам просить у Бога прощения за свои поступки?"],
+["Есть ли у вас желание стать лучше и избавиться от своих плохих привычек?"],
+["Случалось ли вам поступать против своей совести, понимая, что поступаете неправильно?"],
+["Верите ли вы в то, что Бог слышит молитвы людей?"],
+["Как вы думаете, можно ли получить прощение у Бога за совершённые грехи?",[["Да",2],["Не знаю",1],["Нет",0]]],
+["Задумывались ли вы когда-нибудь о том, что Иисус Христос сделал для людей?"],
+["Как вы думаете, что нужно человеку, чтобы попасть в рай?",[["Больше добрых дел","d"],["Прощение Бога","f"],["И то и другое","b"],["Не знаю","n"]]]
+];
+var F=["Хотели бы вы иметь личные отношения с Богом?","Хотели бы вы знать, что ваши грехи прощены?","Интересно ли вам узнать, что Библия говорит о спасении?"];
+var qs=document.getElementById("qs"),ans={};
+Q.forEach(function(q,i){
+ var o=q[1]||YNS,h='<div class="q"><p><b>'+(i+1)+'.</b>'+q[0]+'</p><div class="opts">';
+ o.forEach(function(x,j){h+='<label><input type="radio" name="q'+i+'" value="'+x[1]+'"><span>'+x[0]+'</span></label>'});
+ qs.insertAdjacentHTML("beforeend",h+'</div></div>');
+});
+var fq=document.getElementById("fq");
+F.forEach(function(t,i){
+ fq.insertAdjacentHTML("beforeend",'<div class="q" style="background:transparent"><p>'+t+'</p><div class="opts"><label><input type="radio" name="f'+i+'" value="1"><span>Да</span></label><label><input type="radio" name="f'+i+'" value="0"><span>Пока нет</span></label></div></div>');
+});
+function update(){
+ var n=0;for(var i=0;i<Q.length;i++){if(document.querySelector('input[name="q'+i+'"]:checked'))n++}
+ document.getElementById("pb").style.width=(n/Q.length*100)+"%";
+ document.getElementById("go").disabled=n<Q.length;
+ document.getElementById("hint").textContent=n<Q.length?"Осталось ответить: "+(Q.length-n):"";
+}
+qs.addEventListener("change",update);
+var R=[
+{t:"Вы только в начале пути",x:"Вопросы о Боге и вечности пока не слишком занимали вас — и это нормально. Многие приходят к ним не сразу. Хорошая новость: искать никогда не поздно.",v:"«И взыщете Меня и найдёте, если будете искать Меня всем сердцем вашим».",r:"Иеремия 29:13"},
+{t:"Вы уже задумываетесь",x:"Похоже, эти вопросы вам не чужды: вы размышляете, сомневаетесь, ищете. Это уже немало. Бог не ждёт, что вы всё поймёте сразу.",v:"«Приидите ко Мне, все труждающиеся и обременённые, и Я успокою вас».",r:"Матфея 11:28"},
+{t:"Ваше сердце открыто",x:"Вы много думали о Боге, о совести и о прощении. Такой поиск ценен. Главный вопрос теперь не «достаточно ли я хорош», а «принял ли я то, что Бог уже сделал для меня».",v:"«Если исповедуем грехи наши, то Он, будучи верен и праведен, простит нам грехи наши и очистит нас от всякой неправды».",r:"1 Иоанна 1:9"}
+];
+var N={d:"Вы выбрали добрые дела. Это достойно, но Библия говорит, что одними делами рай не заработать: «Ибо благодатью вы спасены через веру, и сие не от вас, Божий дар» (Ефесянам 2:8).",f:"Вы выбрали прощение Бога — именно об этом и говорит Библия: «Ибо так возлюбил Бог мир, что отдал Сына Своего Единородного, дабы всякий верующий в Него, не погиб, но имел жизнь вечную» (Иоанна 3:16).",b:"Добрые дела важны, но Библия учит, что спасение — это дар, а добрые дела становятся ответом на него: «Ибо благодатью вы спасены через веру, и сие не от вас, Божий дар» (Ефесянам 2:8).",n:"Не страшно, что вы не знаете. Библия отвечает на этот вопрос просто: «Ибо возмездие за грех — смерть, а дар Божий — жизнь вечная во Христе Иисусе, Господе нашем» (Римлянам 6:23)."};
+document.getElementById("go").onclick=function(){
+ var s=0,last="n";
+ for(var i=0;i<Q.length;i++){
+  var v=document.querySelector('input[name="q'+i+'"]:checked').value;
+  if(i==9)last=v;else s+=+v;
+ }
+ var r=s<=7?R[0]:s<=14?R[1]:R[2];
+ document.getElementById("rt").textContent=r.t;
+ document.getElementById("rx").textContent=r.x+" Этот опрос не выносит приговор: это повод поразмышлять.";
+ document.getElementById("rv").innerHTML=r.v+'<small>'+r.r+'</small>';
+ document.getElementById("rn").textContent=N[last];
+ document.getElementById("quiz").style.display="none";
+ document.getElementById("result").style.display="block";
+ window.scrollTo(0,0);
+};
+document.getElementById("again").onclick=function(){
+ document.querySelectorAll("input:checked").forEach(function(i){i.checked=false});
+ document.getElementById("result").style.display="none";
+ document.getElementById("quiz").style.display="block";
+ update();window.scrollTo(0,0);
+};
+update();
+</script>
+</body>
+</html>
